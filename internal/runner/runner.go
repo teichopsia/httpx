@@ -534,7 +534,9 @@ retry:
 		}
 	}
 
-	ip := cache.GetDialedIP(domain)
+	// need to index via actual host we looked up and used in request
+	truehost := req.URL.Host
+	ip := cache.GetDialedIP(truehost)
 	if scanopts.OutputIP {
 		builder.WriteString(fmt.Sprintf(" [%s]", ip))
 	}
@@ -543,7 +545,7 @@ retry:
 		ips    []string
 		cnames []string
 	)
-	dnsData, err := cache.GetDNSData(domain)
+	dnsData, err := cache.GetDNSData(truehost)
 	if dnsData != nil && err == nil {
 		ips = append(ips, dnsData.IP4s...)
 		ips = append(ips, dnsData.IP6s...)
@@ -572,13 +574,13 @@ retry:
 		if port > 0 {
 			domainFile = fmt.Sprintf("%s.%d%s", domain, port, scanopts.RequestURI)
 		}
+		domainfile = strings.ReplaceAll(domainFile,string(os.PathSeparator),"_")
 		// On various OS the file max file name length is 255 - https://serverfault.com/questions/9546/filename-length-limits-on-linux
 		// Truncating length at 255-4
 		if len(domainFile) >= maxFileNameLength {
 			// leaving last 4 bytes free to append extension
 			domainFile = domainFile[:maxFileNameLength]
 		}
-		domainFile = strings.Replace(domainFile, "/", "_", -1)
 		envorder := []string{"version", "ciphername", "cipher", "host", "sni", "ip"}
 		handleStore := func(responseType bool, extension string) {
 			saving := []byte{}
