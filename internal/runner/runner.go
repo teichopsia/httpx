@@ -220,7 +220,9 @@ func (runner *Runner) RunEnumeration() {
 
 			//too late here to work
 			if runner.options.FullJSON {
-				r.TLSData.CertFold = false
+				if r.TLSData != nil {
+					r.TLSData.CertFold = false
+				}
 			}
 			row := r.str
 			if runner.options.FullJSON || runner.options.JSONOutput {
@@ -583,14 +585,18 @@ retry:
 			if responseType {
 				saving = []byte(resp.Raw)
 			} else {
-				running := new(bytes.Buffer)
-				for _, cb := range resp.TLSData.Certificate {
-					for _, ck := range envorder {
-						fmt.Fprintf(running, "%s=%s\n", ck, cb.Envelope[ck])
+				if resp.TLSData == nil {
+					return
+				} else {
+					running := new(bytes.Buffer)
+					for _, cb := range resp.TLSData.Certificate {
+						for _, ck := range envorder {
+							fmt.Fprintf(running, "%s=%s\n", ck, cb.Envelope[ck])
+						}
+						fmt.Fprintf(running, "%s\n", cb.Payload)
 					}
-					fmt.Fprintf(running, "%s\n", cb.Payload)
+					saving = running.Bytes()
 				}
-				saving = running.Bytes()
 			}
 			responsePath := path.Join(scanopts.StoreResponseDirectory, domainFile+extension)
 			if err := ioutil.WriteFile(responsePath, saving, 0644); err != nil {
