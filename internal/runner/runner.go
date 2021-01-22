@@ -574,7 +574,7 @@ retry:
 		if port > 0 {
 			domainFile = fmt.Sprintf("%s.%d%s", domain, port, scanopts.RequestURI)
 		}
-		domainfile = strings.ReplaceAll(domainFile,string(os.PathSeparator),"_")
+		domainFile = strings.ReplaceAll(domainFile,string(os.PathSeparator),"_")
 		// On various OS the file max file name length is 255 - https://serverfault.com/questions/9546/filename-length-limits-on-linux
 		// Truncating length at 255-4
 		if len(domainFile) >= maxFileNameLength {
